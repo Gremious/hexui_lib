@@ -24,27 +24,14 @@ public class RenderSingleCardPortraitPatch {
     )
     public static SpireReturn Insert(SingleCardViewPopup view, final SpriteBatch sb, AbstractCard card) {
         if(card instanceof CustomCardPortrait){
+            float drawX = Settings.WIDTH / 2.0F - 512f;
+            float drawY = Settings.HEIGHT / 2.0F - 512f;
 
-            renderPortrait(card, sb);
+            CardRenderer.renderPortrait(sb, card, drawX, drawY, true);
             return SpireReturn.Return(null);
 
         }
         return SpireReturn.Continue();
-    }
-
-    private static void renderPortrait(AbstractCard card, SpriteBatch sb) {
-        CustomCardPortrait customPortraitCard = (CustomCardPortrait)card;
-
-        if (!card.isLocked){
-            for(RenderLayer renderLayer : customPortraitCard.getPortraitLayers1024()){
-                CardRenderer.renderHelper(card, sb, renderLayer, Settings.WIDTH / 2.0F - 512f, Settings.HEIGHT / 2.0F - 512f, true);
-            }
-        }else{
-            //Maybe check for custom locked image here?
-            for(RenderLayer renderLayer : customPortraitCard.getPortraitLayers1024()){
-                CardRenderer.renderHelper(card, sb, renderLayer, Settings.WIDTH / 2.0F - 512f, Settings.HEIGHT / 2.0F - 512f, true);
-            }
-        }
     }
 }
 

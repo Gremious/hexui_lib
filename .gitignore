@@ -1,5 +1,6 @@
 *.class
 *.psd
+*.psb
 
 # IntelliJ
 .idea/
@@ -79,3 +80,4 @@ $RECYCLE.BIN/
 # Spriter files
 *.autosave.scml
 
+*.cmd

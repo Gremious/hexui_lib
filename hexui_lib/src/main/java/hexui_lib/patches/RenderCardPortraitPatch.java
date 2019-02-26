@@ -24,31 +24,15 @@ public class RenderCardPortraitPatch {
     )
     public static SpireReturn Insert(AbstractCard card, SpriteBatch sb, Color renderColor) {
         if(card instanceof CustomCardPortrait){
+            sb.setColor(renderColor);
+            float drawX = card.current_x - 256.0F;
+            float drawY = card.current_y - 256.0F;
 
-            renderPortrait(card, sb, renderColor);
+            CardRenderer.renderPortrait(sb, card, drawX, drawY, false);
             return SpireReturn.Return(null);
 
         }
         return SpireReturn.Continue();
-    }
-
-    private static void renderPortrait(AbstractCard card, SpriteBatch sb, Color renderColor) {
-        CustomCardPortrait customPortraitCard = (CustomCardPortrait)card;
-
-        float drawX = card.current_x - 256.0F;
-        float drawY = card.current_y - 256.0F;
-
-        if (!card.isLocked){
-            sb.setColor(renderColor);
-            for(RenderLayer renderLayer : customPortraitCard.getPortraitLayers512()){
-                CardRenderer.renderHelper(card, sb, /*renderColor,*/ renderLayer, drawX, drawY, false);
-            }
-        }else{
-            //Maybe check for custom locked image here?
-            for(RenderLayer renderLayer : customPortraitCard.getPortraitLayers512()){
-                CardRenderer.renderHelper(card, sb, /*renderColor,*/ renderLayer, drawX, drawY, false);
-            }
-        }
     }
 }
 

@@ -1,21 +1,30 @@
 package hexui_lib;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.graphics.glutils.FrameBuffer;
 import com.megacrit.cardcrawl.cards.AbstractCard;
 import com.megacrit.cardcrawl.core.ExceptionHandler;
 import com.megacrit.cardcrawl.core.Settings;
-import com.megacrit.cardcrawl.helpers.ImageMaster;
-import hexui_lib.interfaces.HexUICard;
+import hexui_lib.interfaces.CustomCardPortrait;
+import hexui_lib.util.RenderCommandLayer;
+import hexui_lib.util.RenderImageLayer;
 import hexui_lib.util.RenderLayer;
+
+import java.util.ArrayList;
 
 import static hexui_lib.HexUILib.logger;
 
 public class CardRenderer {
+    private static ArrayList<FrameBuffer> fboStack = new ArrayList<FrameBuffer>();
+    private static FrameBuffer fbo = new FrameBuffer(Pixmap.Format.RGBA8888, Settings.WIDTH, Settings.HEIGHT, false, false);
 
-    public static void renderHelper(AbstractCard card, SpriteBatch sb, Color color, Texture img, float drawX, float drawY){
+    public static void renderImageHelper(AbstractCard card, SpriteBatch sb, Color color, Texture img, float drawX, float drawY){
         sb.setColor(color);
         try
         {
@@ -28,7 +37,47 @@ public class CardRenderer {
     }
 
 
-    public static void renderHelper(AbstractCard card, SpriteBatch sb, RenderLayer renderLayer, float drawX, float drawY, boolean isBigCard){
+    public static void renderPortrait(SpriteBatch sb, AbstractCard card, float drawX, float drawY, boolean isBigCard) {
+        CustomCardPortrait customPortraitCard = (CustomCardPortrait)card;
+        
+        if (card.isLocked) {
+            //Maybe check for custom locked image here?
+        }
+
+        for(RenderLayer renderLayer : (isBigCard ? customPortraitCard.getPortraitLayers1024() : customPortraitCard.getPortraitLayers512())){
+            if(renderLayer instanceof RenderImageLayer) {
+                renderImageHelper(card, sb, (RenderImageLayer)renderLayer, drawX, drawY, false);
+            }else if(renderLayer instanceof RenderCommandLayer){
+                renderCommandHelper(sb, (RenderCommandLayer)renderLayer);
+            }
+        }
+    }
+
+    private static void renderCommandHelper(SpriteBatch sb, RenderCommandLayer renderLayer) {
+        switch(renderLayer.command){
+            case FBO_START:
+                sb.end();
+                fbo.begin();
+                Gdx.gl.glClearColor(0.0F, 0.0F, 0.0F, 0.0F);
+                Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
+                Gdx.gl.glColorMask(true, true, true, true);
+                sb.begin();
+                sb.setColor(Color.WHITE);
+                sb.setBlendFunction(-1, -1);//disable spritebatch blending override
+                Gdx.gl.glBlendFuncSeparate(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA, GL20.GL_ONE, GL20.GL_ONE_MINUS_SRC_ALPHA);
+                break;
+            case FBO_END:
+                sb.end();
+                fbo.end();
+                sb.begin();
+                TextureRegion drawTex = new TextureRegion(fbo.getColorBufferTexture());
+                drawTex.flip(false, true);
+                sb.draw(drawTex, 0.0F, 0.0F);
+                break;
+        }
+    }
+
+    public static void renderImageHelper(AbstractCard card, SpriteBatch sb, RenderImageLayer renderLayer, float drawX, float drawY, boolean isBigCard){
         try
         {
             Texture texture = renderLayer.texture;
@@ -58,14 +107,13 @@ public class CardRenderer {
 
             sb.setColor(renderLayer.color);
             setBlending(sb, renderLayer.blendMode);
+            setColorMask(renderLayer.colormask);
 
-            //if(renderLayer.displacement.x != 0 || renderLayer.displacement.y != 0){
-                double theta = Math.atan2(renderLayer.displacement.y, renderLayer.displacement.x);
-                double distance = Math.sqrt(Math.pow(renderLayer.displacement.x, 2) + Math.pow(renderLayer.displacement.y, 2));
-                theta += Math.PI/180*card.angle;
-                dispX += Math.cos(theta)*distance;
-                dispY += Math.sin(theta)*distance;
-            //}
+            double theta = Math.atan2(renderLayer.displacement.y, renderLayer.displacement.x);
+            double distance = Math.sqrt(Math.pow(renderLayer.displacement.x, 2) + Math.pow(renderLayer.displacement.y, 2));
+            theta += Math.PI/180*card.angle;
+            dispX += Math.cos(theta)*distance;
+            dispY += Math.sin(theta)*distance;
 
             sb.draw(renderLayer.texture,
                     drawX+dispX*scale, drawY+dispY*scale,
@@ -76,30 +124,10 @@ public class CardRenderer {
                     texture.getWidth(), texture.getHeight(),
                     false, false);
 
-            /*
 
-            if(isBigCard) {
-                sb.draw(renderLayer.texture,
-                        drawX, drawY,
-                        originX, originY,
-                        texture.getWidth(), texture.getHeight(),
-                        Settings.scale, Settings.scale,
-                        card.angle, 0, 0,
-                        texture.getWidth(), texture.getHeight(),
-                        false, false);
-            }else{
-                sb.draw(renderLayer.texture,
-                        drawX, drawY,
-                        256.0F, 256.0F,
-                        512.0F, 512.0F,
-                        card.drawScale * Settings.scale, card.drawScale * Settings.scale,
-                        card.angle, 0, 0,
-                        512, 512,
-                        false, false);
-            }*/
 
-            sb.setColor(Color.WHITE.cpy());
-            setBlending(sb, RenderLayer.BLENDMODE.NORMAL);
+            //sb.setColor(Color.WHITE.cpy());
+            //setBlending(sb, RenderLayer.BLENDMODE.NORMAL);
         }
         catch (Exception e)
         {
@@ -107,11 +135,29 @@ public class CardRenderer {
         }
     }
 
+    private static void setColorMask(boolean[] colormask){
+        if(colormask == null) return;
+        Gdx.gl.glColorMask(colormask[0], colormask[1], colormask[2], colormask[3]);
+    }
+
     private static void setBlending(SpriteBatch sb, RenderLayer.BLENDMODE blendMode) {
+        if(blendMode == null) return;
         switch(blendMode){
-            case NORMAL: sb.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA); break;
-            case SCREEN: sb.setBlendFunction(GL20.GL_ONE, GL20.GL_ONE); break;
-            case MULTIPLY: sb.setBlendFunction(GL20.GL_ONE, GL20.GL_ONE); break;
+            case NORMAL:
+                sb.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+                break;
+            case SCREEN:
+                sb.setBlendFunction(GL20.GL_ONE, GL20.GL_ONE);
+                break;
+            case MULTIPLY:
+                sb.setBlendFunction(GL20.GL_ONE, GL20.GL_ONE);
+                break;
+            case CREATEMASK:
+                sb.setBlendFunction(GL20.GL_ZERO, GL20.GL_SRC_ALPHA);
+                break;
+            case RECEIVEMASK:
+                sb.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+                break;
         }
     }
 }
