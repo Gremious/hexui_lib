@@ -3,7 +3,9 @@ package hexui_lib.util;
 public class RenderCommandLayer extends RenderLayer {
     public enum COMMAND{
         FBO_START,
-        FBO_END
+        FBO_END,
+        FBO_END_SCREEN,
+        FBO_END_DOUBLESCREEN
     }
     public COMMAND command;
 

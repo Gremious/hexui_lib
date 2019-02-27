@@ -10,6 +10,7 @@ public class RenderLayer {
     public enum BLENDMODE {
         NORMAL,
         SCREEN,
+        LINEAR_DODGE,
         MULTIPLY,
         CREATEMASK,
         RECEIVEMASK

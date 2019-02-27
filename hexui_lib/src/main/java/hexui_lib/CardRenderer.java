@@ -46,7 +46,7 @@ public class CardRenderer {
 
         for(RenderLayer renderLayer : (isBigCard ? customPortraitCard.getPortraitLayers1024() : customPortraitCard.getPortraitLayers512())){
             if(renderLayer instanceof RenderImageLayer) {
-                renderImageHelper(card, sb, (RenderImageLayer)renderLayer, drawX, drawY, false);
+                renderImageHelper(card, sb, (RenderImageLayer)renderLayer, drawX, drawY, isBigCard);
             }else if(renderLayer instanceof RenderCommandLayer){
                 renderCommandHelper(sb, (RenderCommandLayer)renderLayer);
             }
@@ -73,6 +73,36 @@ public class CardRenderer {
                 TextureRegion drawTex = new TextureRegion(fbo.getColorBufferTexture());
                 drawTex.flip(false, true);
                 sb.draw(drawTex, 0.0F, 0.0F);
+                setBlending(sb, RenderLayer.BLENDMODE.NORMAL);
+                Gdx.gl.glColorMask(true, true, true, true);
+                Gdx.gl.glClear(GL20.GL_DEPTH_BUFFER_BIT);
+                break;
+            case FBO_END_SCREEN:
+                sb.end();
+                fbo.end();
+                sb.begin();
+                TextureRegion drawTex2 = new TextureRegion(fbo.getColorBufferTexture());
+                drawTex2.flip(false, true);
+                sb.setBlendFunction(-1, -1);//disable spritebatch blending override
+                Gdx.gl.glBlendFuncSeparate(GL20.GL_SRC_ALPHA, GL20.GL_ONE, GL20.GL_ONE, GL20.GL_ONE);
+                sb.draw(drawTex2, 0.0F, 0.0F);
+                setBlending(sb, RenderLayer.BLENDMODE.NORMAL);
+                Gdx.gl.glColorMask(true, true, true, true);
+                Gdx.gl.glClear(GL20.GL_DEPTH_BUFFER_BIT);
+                break;
+            case FBO_END_DOUBLESCREEN:
+                sb.end();
+                fbo.end();
+                sb.begin();
+                TextureRegion drawTex3 = new TextureRegion(fbo.getColorBufferTexture());
+                drawTex3.flip(false, true);
+                sb.setBlendFunction(-1, -1);//disable spritebatch blending override
+                Gdx.gl.glBlendFuncSeparate(GL20.GL_SRC_ALPHA, GL20.GL_ONE, GL20.GL_ONE, GL20.GL_ONE);
+                sb.draw(drawTex3, 0.0F, 0.0F);
+                sb.draw(drawTex3, 0.0F, 0.0F);
+                setBlending(sb, RenderLayer.BLENDMODE.NORMAL);
+                Gdx.gl.glColorMask(true, true, true, true);
+                Gdx.gl.glClear(GL20.GL_DEPTH_BUFFER_BIT);
                 break;
         }
     }
@@ -149,8 +179,12 @@ public class CardRenderer {
             case SCREEN:
                 sb.setBlendFunction(GL20.GL_ONE, GL20.GL_ONE);
                 break;
+            case LINEAR_DODGE:
+                sb.setBlendFunction(-1, -1); //disable spritebatch blending override
+                Gdx.gl.glBlendFuncSeparate(GL20.GL_SRC_ALPHA, GL20.GL_ONE, GL20.GL_ONE, GL20.GL_ZERO);
+                break;
             case MULTIPLY:
-                sb.setBlendFunction(GL20.GL_ONE, GL20.GL_ONE);
+                sb.setBlendFunction(GL20.GL_DST_COLOR, GL20.GL_ZERO);
                 break;
             case CREATEMASK:
                 sb.setBlendFunction(GL20.GL_ZERO, GL20.GL_SRC_ALPHA);

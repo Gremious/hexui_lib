@@ -37,14 +37,19 @@ public class FlavorTips {
                     float CARD_TIP_PAD = 12.0F * Settings.scale;
                     float BOX_EDGE_H = 32.0F * Settings.scale;
                     float BOX_W = 320.0F * Settings.scale;
-                    float tooltipX = card.current_x - AbstractCard.IMG_WIDTH / 2.0F - CARD_TIP_PAD - BOX_W;
+                    float tooltipX_left         = card.current_x - AbstractCard.IMG_WIDTH / 2.0F - CARD_TIP_PAD - BOX_W;
+                    float tooltipX_farLeft      = tooltipX_left - CARD_TIP_PAD - BOX_W;
+                    float tooltipX_farRight     = card.current_x + AbstractCard.IMG_WIDTH / 2.0F + CARD_TIP_PAD + BOX_W;
                     float tooltipY = card.current_y + AbstractCard.IMG_HEIGHT / 2.0F - BOX_EDGE_H;
-                    if (card.current_x <= Settings.WIDTH * 0.75F) {
-                        SecondTipHelper.renderPowerTips(tooltipX, tooltipY, sb, tips);
+                    if (card.current_x < Settings.WIDTH * 0.33F) {
+                        //Ok, we're really far left. We need to render flavor tips on the far right side.
+                        SecondTipHelper.renderPowerTips(tooltipX_farRight, tooltipY, sb, tips);
+                    }else if (card.current_x <= Settings.WIDTH * 0.75F) {
+                        SecondTipHelper.renderPowerTips(tooltipX_left, tooltipY, sb, tips);
                     }else{
                         //Card is really far right. Normal tooltips will be rendered on the left side.
                         //So we'll render the flavor tips even further left.
-                        SecondTipHelper.renderPowerTips(tooltipX - CARD_TIP_PAD - BOX_W, tooltipY, sb, tips);
+                        SecondTipHelper.renderPowerTips(tooltipX_farLeft, tooltipY, sb, tips);
                     }
                 }
             }

@@ -62,7 +62,7 @@ public class HexUILib implements
 
 
     //Mod Badge - A small icon that appears in the mod settings menu next to your mod.
-    public static final String BADGE_IMAGE = "magineerResources/images/Badge.png";
+    public static final String BADGE_IMAGE = "images/Badge.png";
 
 
     // =============== /MAKE IMAGE PATHS/ =================
