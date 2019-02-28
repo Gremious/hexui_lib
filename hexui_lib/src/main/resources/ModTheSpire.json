@@ -2,7 +2,7 @@
   "modid": "hexuilib",
   "name": "HexUI Lib",
   "author_list": ["Hexblue"],
-  "description": "A base for Slay the Spire to start your own mod from.",
+  "description": "A graphical UI library.",
   "version": "${project.version}",
   "sts_version": "${SlayTheSpire.version}",
   "mts_version": "${ModTheSpire.version}",
