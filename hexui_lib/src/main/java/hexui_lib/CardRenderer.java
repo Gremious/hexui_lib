@@ -33,6 +33,7 @@ public class CardRenderer {
         catch (Exception e)
         {
             ExceptionHandler.handleException(e, logger);
+            e.printStackTrace();
         }
     }
 
@@ -104,6 +105,13 @@ public class CardRenderer {
                 Gdx.gl.glColorMask(true, true, true, true);
                 Gdx.gl.glClear(GL20.GL_DEPTH_BUFFER_BIT);
                 break;
+            case ATTEMPT_RESET:
+                sb.setBlendFunction(-1, -1);//disable spritebatch blending override
+                Gdx.gl.glBlendFunc(-1, -1);
+                setBlending(sb, RenderLayer.BLENDMODE.NORMAL);
+                Gdx.gl.glColorMask(true, true, true, true);
+                Gdx.gl.glClear(GL20.GL_DEPTH_BUFFER_BIT);
+                break;
         }
     }
 
@@ -111,6 +119,9 @@ public class CardRenderer {
         try
         {
             Texture texture = renderLayer.texture;
+            if(texture == null){
+                logger.error(("!!! renderImageHelper(...) > texture was null!"));
+            }
 
             float scale = Settings.scale;
             float centerX = 512;
@@ -149,7 +160,7 @@ public class CardRenderer {
                     drawX+dispX*scale, drawY+dispY*scale,
                     originX, originY,
                     texture.getWidth(), texture.getHeight(),
-                    scale, scale,
+                    scale*renderLayer.scale.x, scale*renderLayer.scale.y,
                     card.angle+renderLayer.angle, 0, 0,
                     texture.getWidth(), texture.getHeight(),
                     false, false);
@@ -162,6 +173,7 @@ public class CardRenderer {
         catch (Exception e)
         {
             ExceptionHandler.handleException(e, logger);
+            e.printStackTrace();
         }
     }
 

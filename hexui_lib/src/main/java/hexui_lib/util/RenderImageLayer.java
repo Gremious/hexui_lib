@@ -8,6 +8,7 @@ public class RenderImageLayer extends RenderLayer {
     public Color color;
     public BLENDMODE blendMode;
     public FloatPair displacement;
+    public FloatPair scale;
     public float angle;
     public boolean[] colormask;
 
@@ -38,5 +39,6 @@ public class RenderImageLayer extends RenderLayer {
         this.displacement   = displacement != null    ? displacement  : new FloatPair(0f, 0f);
         this.angle          = angle;
         this.colormask      = colormask;
+        this.scale          = new FloatPair(1f, 1f);
     }
 }

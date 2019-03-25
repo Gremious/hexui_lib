@@ -5,7 +5,8 @@ public class RenderCommandLayer extends RenderLayer {
         FBO_START,
         FBO_END,
         FBO_END_SCREEN,
-        FBO_END_DOUBLESCREEN
+        FBO_END_DOUBLESCREEN,
+        ATTEMPT_RESET
     }
     public COMMAND command;
 
